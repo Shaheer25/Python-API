@@ -2,11 +2,24 @@ from flask import Flask ,Response , request ,jsonify
 import pymongo
 import json
 from bson.objectid import ObjectId
+from flask_swagger_ui import get_swaggerui_blueprint
 from flask_jwt_extended import JWTManager, create_access_token, decode_token, jwt_required, get_jwt_identity
 import bcrypt
 from datetime import timedelta
 
 app = Flask(__name__)
+SWAGGER_URL = '/api/docs'
+API_URL = '/static/swagger_file.json'
+swaggerui_blueprint = get_swaggerui_blueprint(
+    SWAGGER_URL,
+    API_URL,
+    config={  # Swagger UI config overrides
+        'app_name': "Test application"
+    },
+
+)
+
+app.register_blueprint(swaggerui_blueprint)
 jwt = JWTManager(app)
 app.config["JWT_SECRET_KEY"] = "jhfshgfghsfags"
 try :
@@ -240,4 +253,4 @@ def protected():
 
 
 if __name__ == '__main__':
-    app.run(port=8080, debug=True)
+    app.run(port=5000, debug=True)
