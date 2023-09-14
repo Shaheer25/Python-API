@@ -10,16 +10,15 @@ from datetime import timedelta
 app = Flask(__name__)
 SWAGGER_URL = '/api/docs'
 API_URL = '/static/swagger_file.json'
-swaggerui_blueprint = get_swaggerui_blueprint(
+blueprint = get_swaggerui_blueprint(
     SWAGGER_URL,
     API_URL,
-    config={  # Swagger UI config overrides
+    config={
         'app_name': "Test application"
     },
-
 )
 
-app.register_blueprint(swaggerui_blueprint)
+app.register_blueprint(blueprint)
 jwt = JWTManager(app)
 app.config["JWT_SECRET_KEY"] = "jhfshgfghsfags"
 try :
@@ -207,22 +206,22 @@ def signup():
             mimetype="application/json"
         )
 
-@app.route("/users/login",methods=["POST"])
+@app.route("/users/login", methods=["POST"])
 def login():
     try:
-        data= request.get_json()
+        data = request.get_json()
         email = data.get("email")
         password = data.get("password")
 
-        user = db.signup.find_one({"email":email})
-        if user and bcrypt.hashpw(password.encode("utf-8"),user["password"]):
+        user = db.signup.find_one({"email": email})
+        if user and bcrypt.checkpw(password.encode("utf-8"), user["password"].encode("utf-8")):
             access_token_expiry = timedelta(minutes=15)
-            refresh_token_expiry= timedelta(days=7)
-            access_token=create_access_token(identity="username",expires_delta=access_token_expiry)
+            refresh_token_expiry = timedelta(days=7)
+            access_token = create_access_token(identity="username", expires_delta=access_token_expiry)
             refresh_token = create_access_token(identity="username", expires_delta=refresh_token_expiry)
-            return jsonify({"data":{"access_token":f"{access_token}",}}) , 200
+            return jsonify({"data": {"access_token": f"{access_token}"}}, 200)
         else:
-            return jsonify({"message":"Invalid Credentials"})
+            return jsonify({"message": "Invalid Credentials"}), 401
 
     except Exception as exp:
         print(exp)
@@ -231,7 +230,9 @@ def login():
                 "message": "Failed Login In"
             }),
             status=500,
-            mimetype="application/json")
+            mimetype="application/json"
+        )
+
 
 @app.route("/refreshtoken",methods=["GET"])
 @jwt_required()
